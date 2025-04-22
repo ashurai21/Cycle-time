@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Process Steps Entry</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input, button {
+      padding: 5px;
+      margin: 5px;
+    }
+    .step {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding: 6px;
+    }
+    table {
+      margin-top: 20px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Segment Process Entry</h2>
+
+  <label>Segment Name: </label>
+  <input type="text" id="segmentName"><br>
+
+  <label>Number of Steps: </label>
+  <input type="number" id="stepCount" min="1"><br>
+
+  <button onclick="generateForm()">Generate Steps</button>
+
+  <form id="stepsForm"></form>
+
+  <button onclick="submitSegment()">Submit Segment</button>
+
+  <h3>Process Table</h3>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Segment Name</th>
+        <th>Step No.</th>
+        <th>Waiting Time</th>
+        <th>Activity Name</th>
+        <th>Activity Duration</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4"><strong>Total Cycle Time</strong></td>
+        <td id="totalCycleTime">0</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    function generateForm() {
+      const stepCount = parseInt(document.getElementById('stepCount').value);
+      const form = document.getElementById('stepsForm');
+      form.innerHTML = '';
+
+      for (let i = 1; i <= stepCount; i++) {
+        const div = document.createElement('div');
+        div.className = 'step';
+        div.innerHTML = `
+          <h4>Process Step ${i}</h4>
+          ${i > 1 ? `
+            <label>Waiting Time (before this step): </label>
+            <input type="number" name="waiting${i}" min="0" value="0"><br>
+          ` : ''}
+          <label>Activity Name: </label>
+          <input type="text" name="activityName${i}" required><br>
+          <label>Activity Duration (in min): </label>
+          <input type="number" name="duration${i}" min="1" required><br>
+        `;
+        form.appendChild(div);
+      }
+    }
+
+    function submitSegment() {
+      const segment = document.getElementById('segmentName').value.trim();
+      const stepCount = parseInt(document.getElementById('stepCount').value);
+      if (!segment || !stepCount) {
+        alert("Please enter segment name and number of steps.");
+        return;
+      }
+
+      let totalCycleTime = 0;
+      const tbody = document.querySelector('#dataTable tbody');
+
+      for (let i = 1; i <= stepCount; i++) {
+        const activityName = document.querySelector(`[name=activityName${i}]`).value;
+        const duration = parseInt(document.querySelector(`[name=duration${i}]`).value);
+        const waiting = i > 1 ? parseInt(document.querySelector(`[name=waiting${i}]`).value) : 0;
+
+        totalCycleTime += duration + (waiting || 0);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${segment}</td>
+          <td>${i}</td>
+          <td>${waiting || 0}</td>
+          <td>${activityName}</td>
+          <td>${duration}</td>
+        `;
+        tbody.appendChild(row);
+      }
+
+      // Update total cycle time
+      const currentTotal = parseInt(document.getElementById('totalCycleTime').innerText);
+      document.getElementById('totalCycleTime').innerText = currentTotal + totalCycleTime;
+
+      // Reset for next segment
+      document.getElementById('segmentName').value = '';
+      document.getElementById('stepCount').value = '';
+      document.getElementById('stepsForm').innerHTML = '';
+    }
+  </script>
+
+</body>
+</html>
